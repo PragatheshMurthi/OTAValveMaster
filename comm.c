@@ -148,6 +148,8 @@ VOID initiate_order( MASTER_ARCHIVE* pstMasterArchive )
     UINT32 u32CurrTime      = 0,
            u32ElapsedTime    = 0;
     SLAVE_ORDER_BUFFER stOrderBuffer = { 0 };
+    ACK_BUFFER stAckBuffer = { 0 };
+    UREQ_BUFF_INTERNAL *pstRecAckData = null_ptr;
 
     while ( pstMasterArchive->u16NumberOfRequests > u32RequestsLooper )
     {
@@ -162,24 +164,11 @@ VOID initiate_order( MASTER_ARCHIVE* pstMasterArchive )
         hal_send( &stOrderBuffer, sizeof(SLAVE_ORDER_BUFFER) );
         
         ((UREQ_BUFF_INTERNAL*)(pstMasterArchive->pvRequests) + u32RequestsLooper)->u8OrderStatus = ORDER_STATUS_ACK_PENDING;
+    
         
-        // After processing, increment the number of requests.
-        u32RequestsLooper++;
-    }
-
-    // Acknowledge the order initiation and wait for acknowledgments from the slave devices.
-
-    get_current_time(&u32CurrTime);
-
-    while ( true )
-    {
         // Wait for acknowledgment from the slave device.
-        // This is a placeholder for actual acknowledgment handling logic.
-        // For example, you might want to wait for a response from the slave device here.
-        ACK_BUFFER stAckBuffer = { 0 };
-        enErrorCode = hal_receive( &stAckBuffer );
-        UREQ_BUFF_INTERNAL *pstRecAckData = null_ptr;
-
+        enErrorCode = hal_receive_timeout( &stAckBuffer, MAX_ACK_WAIT_TIME );
+        
         if ( enErrorCode == ERR_OK )
         {
             print_dbg("%s:AckRecieved<OK><AB[%p]><%d>", __FUNCTION__, &stAckBuffer, enErrorCode);
@@ -220,27 +209,14 @@ VOID initiate_order( MASTER_ARCHIVE* pstMasterArchive )
         } else {
             print_err("%s:AckReceive<KO>ERR<%d>", __FUNCTION__, enErrorCode);
         }
+    
 
-        // loop break condition: If all requests have been acknowledged, break the loop.
-        if ( pstMasterArchive->u16PositiveAckCount >= pstMasterArchive->u16NumberOfRequests )
-        {
-            print_dbg("%s:AllAcksReceived<OK><GA[%p]SN[%d]CN[%d]NR[%d]>", 
-                        __FUNCTION__, 
-                        pstMasterArchive, 
-                        pstMasterArchive->u32CurrSequence, 
-                        pstMasterArchive->u32PrevSequence, 
-                        pstMasterArchive->u16NumberOfRequests);
-            break;
-        }
-
-        // loop break condition: If the acknowledgment wait time exceeds the maximum wait time, break the loop.
-        if ( get_current_time(&u32ElapsedTime) - u32CurrTime > MAX_ACK_WAIT_TIME )
-        {
-            print_err("%s:AckWaitTimeout<KO><AB[%p]ET[%d]MWT[%d]>", __FUNCTION__, &stAckBuffer, u32ElapsedTime, MAX_ACK_WAIT_TIME);
-            set_error(ERR_TIMEOUT);
-            break;
-        }
+        // After processing, increment the number of requests.
+        u32RequestsLooper++;
     }
+
+    while ( true )
+    
 
     print_dbg("%s:OrderInitiated<OK><GA[%p]SN[%d]CN[%d]NR[%d]>", 
                 __FUNCTION__, 

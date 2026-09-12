@@ -25,4 +25,4 @@ int initializeInterfaces( void ) {
 
 hal_sendAck
 
-hal_receive
+hal_receive_timeout
