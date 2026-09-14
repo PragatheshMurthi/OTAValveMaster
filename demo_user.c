@@ -53,7 +53,7 @@ int main(void)
     while (fgets(line, sizeof(line), stdin) != NULL) {
         UREQ_BUFFER request_list[MAX_REQUESTS_PER_LINE];
         uint32_t request_count = 0;
-        
+        printf("Demo user: processing input line: %s", line);
         // Linear array to hold pre-tokenized words
         char *tokens[MAX_TOKENS];
         int token_count = 0;
@@ -81,7 +81,6 @@ int main(void)
 
             char *valve_str = tokens[i + 1];
             unsigned int vid = (unsigned int)strtoul(valve_str, NULL, 10);
-            if (vid == 0) vid = 1;
 
             unsigned int duration = 0;
             uint8_t req_type = 0;

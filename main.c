@@ -8,6 +8,21 @@ void startWorking(void);
 
 static MASTER_ARCHIVE *gstInformationDB = NULL;
 
+void cleanup(void)
+{
+    /* FREE MEMORY: Cleanup function for global resources */
+    if (gstInformationDB != NULL) {
+        /* Free any pending requests */
+        if (gstInformationDB->pvRequests != NULL) {
+            free(gstInformationDB->pvRequests);
+            gstInformationDB->pvRequests = NULL;
+        }
+        /* Free the database itself */
+        free(gstInformationDB);
+        gstInformationDB = NULL;
+    }
+}
+
 void setup(void)
 {
     ERROR_CODE enErrorCode = ERR_OK;
@@ -44,18 +59,25 @@ int main(void)
 
 void startWorking(void)
 {
+    PVOID pvUReqBuffer = NULL;
+
     if (gstInformationDB == NULL) {
         print_err("MASTER Archive DB not initialized/NULL");
         return;
     }
 
     while (true) {
-        PVOID pvUReqBuffer = NULL;
-
+        
         pvUReqBuffer = receive_user_request(gstInformationDB);
         parse_request(gstInformationDB, pvUReqBuffer);
         initiate_order(gstInformationDB);
         actuate_motor(gstInformationDB);
         post_ack(gstInformationDB);
+        
+        /* FREE MEMORY LEAK: User request buffer allocated by HAL receive functions */
+        if (pvUReqBuffer != NULL) {
+            free(pvUReqBuffer);
+            pvUReqBuffer = NULL;
+        }
     }
 }

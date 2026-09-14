@@ -92,7 +92,7 @@ static inline void print_info(const char *fmt, ...) {
 
 static inline void set_error(MASTER_ARCHIVE *pstMasterArchive, ERROR_CODE enCurrentErr)
 {
-    if (pstMasterArchive != NULL && pstMasterArchive->enInstErrStatus == ERR_OK) {
+    if ( pstMasterArchive != NULL ) {
         pstMasterArchive->enInstErrStatus = enCurrentErr;
     }
 }

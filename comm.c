@@ -103,7 +103,7 @@ void initiate_order(MASTER_ARCHIVE *pstMasterArchive)
     ERROR_CODE enErrorCode = ERR_OK;
     UINT32 u32RequestsLooper = 0U;
     SLAVE_ORDER_BUFFER stOrderBuffer = {0};
-    ACK_BUFFER stAckBuffer = {0};
+    ACK_BUFFER *pstAckBuffer = NULL;
     UREQ_BUFF_INTERNAL *pstRecAckData = NULL;
 
     DBG_ENTRY
@@ -133,31 +133,35 @@ void initiate_order(MASTER_ARCHIVE *pstMasterArchive)
         hal_send_to_slave(&stOrderBuffer, sizeof(stOrderBuffer));
         pstCurrRequest->u8OrderStatus = ORDER_STATUS_ACK_PENDING;
 
-        enErrorCode = hal_receive_from_slave(&stAckBuffer, MAX_ACK_WAIT_TIME);
-        if (enErrorCode == ERR_OK) {
-            print_dbg("%s:AckRecieved<OK><AB[%p]><%d>", __FUNCTION__, &stAckBuffer, enErrorCode);
+        enErrorCode = hal_receive_from_slave(&pstAckBuffer, MAX_ACK_WAIT_TIME);
+        if (enErrorCode == ERR_OK && pstAckBuffer != NULL) {
+            print_dbg("%s:AckRecieved<OK><AB[%p]><%d>", __FUNCTION__, pstAckBuffer, enErrorCode);
 
-            if (stAckBuffer.u32SequenceNumber != pstMasterArchive->u32CurrSequence) {
-                print_dbg("%s:AckSequenceMatch<OK><AB[%p]SN[%d]CN[%d]>", __FUNCTION__, &stAckBuffer, stAckBuffer.u32SequenceNumber, pstMasterArchive->u32CurrSequence);
-                pstRecAckData = find_instance_by_valve_id(pstMasterArchive, stAckBuffer.u32ValveID);
+            if (pstAckBuffer->u32SequenceNumber == pstMasterArchive->u32CurrSequence) {
+                print_dbg("%s:AckSequenceMatch<OK><AB[%p]SN[%d]CN[%d]>", __FUNCTION__, pstAckBuffer, pstAckBuffer->u32SequenceNumber, pstMasterArchive->u32CurrSequence);
+                pstRecAckData = find_instance_by_valve_id(pstMasterArchive, pstAckBuffer->u32ValveID);
                 if (pstRecAckData == NULL) {
-                    print_err("%s:NoValidInst<KO><AB[%p]AS[%s]VID[%d]>", __FUNCTION__, &stAckBuffer, stAckBuffer.acOrderStatus, stAckBuffer.u32ValveID);
+                    print_err("%s:NoValidInst<KO><AB[%p]AS[%s]VID[%d]>", __FUNCTION__, pstAckBuffer, pstAckBuffer->acOrderStatus, pstAckBuffer->u32ValveID);
                 } else {
-                    if (strcmp(stAckBuffer.acOrderStatus, "ORDER_PROCESSED") == 0) {
-                        print_dbg("%s:AckStatus<OK><AB[%p]AS[%s]VID[%d]>", __FUNCTION__, &stAckBuffer, stAckBuffer.acOrderStatus, stAckBuffer.u32ValveID);
+                    if (strcmp(pstAckBuffer->acOrderStatus, "ORDER_PROCESSED") == 0) {
+                        print_dbg("%s:AckStatus<OK><AB[%p]AS[%s]VID[%d]>", __FUNCTION__, pstAckBuffer, pstAckBuffer->acOrderStatus, pstAckBuffer->u32ValveID);
                         strncpy(pstRecAckData->acOrderResult, "Success", MAX_ORDER_RESULT_LENGTH - 1);
                         pstRecAckData->acOrderResult[MAX_ORDER_RESULT_LENGTH - 1] = '\0';
                         pstMasterArchive->u16PositiveAckCount++;
                     } else {
-                        print_dbg("%s:AckStatus<OK><AB[%p]AS[%s]VID[%d]>", __FUNCTION__, &stAckBuffer, stAckBuffer.acOrderStatus, stAckBuffer.u32ValveID);
-                        strncpy(pstRecAckData->acOrderResult, stAckBuffer.acOrderStatus, MAX_ORDER_RESULT_LENGTH - 1);
+                        print_dbg("%s:AckStatus<OK><AB[%p]AS[%s]VID[%d]>", __FUNCTION__, pstAckBuffer, pstAckBuffer->acOrderStatus, pstAckBuffer->u32ValveID);
+                        strncpy(pstRecAckData->acOrderResult, pstAckBuffer->acOrderStatus, MAX_ORDER_RESULT_LENGTH - 1);
                         pstRecAckData->acOrderResult[MAX_ORDER_RESULT_LENGTH - 1] = '\0';
-                        print_err("%s:AckStatus<KO><AB[%p]AS[%s]>", __FUNCTION__, &stAckBuffer, stAckBuffer.acOrderStatus);
+                        print_err("%s:AckStatus<KO><AB[%p]AS[%s]>", __FUNCTION__, pstAckBuffer, pstAckBuffer->acOrderStatus);
                     }
                 }
             } else {
-                print_err("%s:AckSequenceMismatch<KO><AB[%p]SN[%d]CN[%d]>", __FUNCTION__, &stAckBuffer, stAckBuffer.u32SequenceNumber, pstMasterArchive->u32CurrSequence);
+                print_err("%s:AckSequenceMismatch<KO><AB[%p]SN[%d]CN[%d]>", __FUNCTION__, pstAckBuffer, pstAckBuffer->u32SequenceNumber, pstMasterArchive->u32CurrSequence);
             }
+            
+            /* FREE MEMORY LEAK: ACK buffer allocated by HAL receive functions */
+            free(pstAckBuffer);
+            pstAckBuffer = NULL;
         } else {
             print_err("%s:AckReceive<KO>ERR<%d>", __FUNCTION__, enErrorCode);
         }
@@ -223,8 +227,9 @@ void post_ack(MASTER_ARCHIVE *pstMasterArchive)
         print_err("%s:FailedToFillAckBuffer<KO>", __FUNCTION__);
     }
 
-    stAckBuffer.u32OrderCRC = calculate_crc(&stAckBuffer, sizeof(stAckBuffer));
     stAckBuffer.u32OrderLength = sizeof(stAckBuffer);
+    stAckBuffer.u32OrderCRC = calculate_crc(&stAckBuffer, sizeof(stAckBuffer));
+    
     enErrorCode = hal_send_to_user(&stAckBuffer, sizeof(stAckBuffer));
 
     if (enErrorCode == ERR_OK) {
@@ -232,7 +237,7 @@ void post_ack(MASTER_ARCHIVE *pstMasterArchive)
     } else {
         print_err("%s:AckSend<KO>ERR<%d>", __FUNCTION__, enErrorCode);
     }
-
+    set_error(pstMasterArchive, ERR_OK); // Reset error status after sending acknowledgment
     DBG_EXIT
 }
 
@@ -272,13 +277,6 @@ void parse_request(MASTER_ARCHIVE *pstMasterArchive, PVOID pvUReqBuffer)
         return;
     }
 
-    if (((UREQ_METADATA *)pvUReqBuffer)->u32RequestSequenceNumber <= pstMasterArchive->u32CurrSequence) {
-        print_dbg("%s:RequestSequenceNumber<KO><OB[%p]SN[%d]CN[%d]>", __FUNCTION__, pvUReqBuffer, ((UREQ_METADATA *)pvUReqBuffer)->u32RequestSequenceNumber, pstMasterArchive->u32CurrSequence);
-        set_error(pstMasterArchive, ERR_STALE_ORDER);
-        DBG_EXIT
-        return;
-    }
-
     if (((UREQ_METADATA *)pvUReqBuffer)->u32NumberOfRequests < 1U || ((UREQ_METADATA *)pvUReqBuffer)->u32NumberOfRequests >= MAX_USER_REQUESTS) {
         print_dbg("%s:Requests over/under flow<KO><OB[%p]SN[%d]CN[%d]>", __FUNCTION__, pvUReqBuffer, ((UREQ_METADATA *)pvUReqBuffer)->u32NumberOfRequests, pstMasterArchive->u32CurrSequence);
         set_error(pstMasterArchive, ERR_ORDER_OOB);
@@ -310,6 +308,12 @@ void parse_request(MASTER_ARCHIVE *pstMasterArchive, PVOID pvUReqBuffer)
         }
     }
 
+    /* FREE MEMORY LEAK: Free old request buffer before assigning new one */
+    if (pstMasterArchive->pvRequests != NULL) {
+        free(pstMasterArchive->pvRequests);
+        pstMasterArchive->pvRequests = NULL;
+    }
+
     pstMasterArchive->pvRequests = apstUReqData;
     pstMasterArchive->u16NumberOfRequests = (UINT16)((UREQ_METADATA *)pvUReqBuffer)->u32NumberOfRequests;
     pstMasterArchive->u32CurrSequence = ((UREQ_METADATA *)pvUReqBuffer)->u32RequestSequenceNumber;
@@ -327,7 +331,7 @@ ERROR_CODE populate_request(UREQ_BUFFER *pstSRCUReqData, UREQ_BUFF_INTERNAL *pst
         return ERR_INVALID_PARAM;
     }
 
-    if (pstSRCUReqData->u32ValveID < 1U || pstSRCUReqData->u32ValveID > MAX_VALVE_ID) {
+    if (pstSRCUReqData->u32ValveID < 0U || pstSRCUReqData->u32ValveID > MAX_VALVE_ID) {
         print_err("%s:ValveID<KO><VID[%d]MAX[%d]>", __FUNCTION__, pstSRCUReqData->u32ValveID, MAX_VALVE_ID);
         DBG_EXIT
         return ERR_INVALID_REQUEST;
