@@ -1,5 +1,23 @@
+/* *****************************************************************************
+ * @file        options.h
+ * @brief       Compile-time feature flags, limits, and transport settings.
+ * @author      OTAValveMaster Contributors
+ * @date        2026-09-14
+ *
+ * @license     Project License
+ *              Copyright (c) 2026 OTAValveMaster Contributors
+ *              All rights reserved.
+ ******************************************************************************/
+
+/*============================================================================*/
+/*                                  INCLUDES                                  */
+/*============================================================================*/
 #ifndef OPTIONS_H
 #define OPTIONS_H
+
+/*============================================================================*/
+/*                         DEFINES & MACROS & ENUMS                           */
+/*============================================================================*/
 
 #define MAX_ORDER_RESULT_LENGTH 32
 #define MAX_USR_ACK_RESULT_LENGTH 128

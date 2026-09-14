@@ -1,3 +1,17 @@
+/* *****************************************************************************
+ * @file        gen.h
+ * @brief       Shared types, error codes, archive structures, and logging APIs.
+ * @author      OTAValveMaster Contributors
+ * @date        2026-09-14
+ *
+ * @license     Project License
+ *              Copyright (c) 2026 OTAValveMaster Contributors
+ *              All rights reserved.
+ ******************************************************************************/
+
+/*============================================================================*/
+/*                                  INCLUDES                                  */
+/*============================================================================*/
 #ifndef GEN_H
 #define GEN_H
 
@@ -7,6 +21,14 @@
 #include <string.h>
 
 #include "options.h"
+
+/*============================================================================*/
+/*                         DEFINES & MACROS & ENUMS                           */
+/*============================================================================*/
+
+/*============================================================================*/
+/*                            TYPE DEFINITIONS                                */
+/*============================================================================*/
 
 /* ================== TYPEDEFS ================== */
 typedef int INT32;
@@ -19,44 +41,61 @@ typedef void *PVOID;
 typedef char *PCHAR;
 typedef char CHAR;
 
+/** Error codes returned by master operations. */
 typedef enum {
-    ERR_OK = 0,
-    ERR_NET_IF_FAIL,
-    ERR_INVALID_PARAM,
-    ERR_MEMORY_ALLOCATION_FAIL,
-    ERR_INTEGRITY_CHECK_FAILED,
-    ERR_INVALID_REQUEST,
-    ERR_TIMEOUT,
-    ERR_STALE_ORDER,
-    ERR_ORDER_OOB,
-    ERR_UNKNOWN
+    ERR_OK = 0,                         /**< Operation completed successfully. */
+    ERR_NET_IF_FAIL,                    /**< Network interface failure. */
+    ERR_INVALID_PARAM,                  /**< Function argument is invalid. */
+    ERR_MEMORY_ALLOCATION_FAIL,         /**< Dynamic allocation failed. */
+    ERR_INTEGRITY_CHECK_FAILED,         /**< Buffer integrity check failed. */
+    ERR_INVALID_REQUEST,                /**< Request contents are invalid. */
+    ERR_TIMEOUT,                        /**< Operation timed out. */
+    ERR_STALE_ORDER,                    /**< Order sequence is stale. */
+    ERR_ORDER_OOB,                      /**< Request count is out of bounds. */
+    ERR_UNKNOWN                         /**< Unclassified error. */
 } ERROR_CODE;
 
+/** Runtime state of the master controller. */
 typedef enum {
-    MASTER_IDLE = 0,
-    MASTER_PROCESSING
+    MASTER_IDLE = 0,                    /**< Master is waiting for work. */
+    MASTER_PROCESSING                   /**< Master is processing a request. */
 } MASTER_STATE;
 
 #define DBG_ENTRY print_dbg("%s:Entry", __FUNCTION__);
 #define DBG_EXIT print_dbg("%s:Exit", __FUNCTION__);
 
 /* ================== STRUCTURES ================== */
+/**
+ * @typedef MASTER_ARCHIVE
+ * @brief Persistent state and parsed requests owned by the master controller.
+ */
 typedef struct {
-    ERROR_CODE enInstErrStatus;
-    UINT32 u32CurrSequence;
-    UINT32 u32PrevSequence;
-    PVOID pvRequests;
-    UINT16 u16NumberOfRequests;
-    UINT16 u16PositiveAckCount;
-    MASTER_STATE enMasterState;
+    ERROR_CODE enInstErrStatus;         /**< Current instance error status. */
+    UINT32 u32CurrSequence;             /**< Current request sequence number. */
+    UINT32 u32PrevSequence;             /**< Previously processed sequence number. */
+    PVOID pvRequests;                   /**< Allocated internal request array. */
+    UINT16 u16NumberOfRequests;         /**< Number of entries in the request array. */
+    UINT16 u16PositiveAckCount;         /**< Number of successful acknowledgments. */
+    MASTER_STATE enMasterState;         /**< Current controller state. */
 } MASTER_ARCHIVE;
 
 /* ================== FUNCTION PROTOTYPES ================== */
+/** Writes a debug-level formatted message when debugging is enabled. */
 static inline void print_dbg(const char *fmt, ...);
+
+/** Writes an error-level formatted message when error logging is enabled. */
 static inline void print_err(const char *fmt, ...);
+
+/** Writes an informational formatted message when info logging is enabled. */
 static inline void print_info(const char *fmt, ...);
+
+/** Stores an error code in a master archive when the archive is valid. */
 static inline void set_error(MASTER_ARCHIVE *pstMasterArchive, ERROR_CODE enCurrentErr);
+
+/** Reads the archive error code, returning ERR_INVALID_PARAM for NULL. */
 static inline ERROR_CODE get_error(const MASTER_ARCHIVE *pstMasterArchive);
+
+/** Converts an error code to its stable string representation. */
 static inline const char *convert_err2str(ERROR_CODE enErrorCode);
 
 /* ================== INLINE FUNCTIONS ================== */
