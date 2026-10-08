@@ -109,6 +109,10 @@ typedef struct {
     CHAR acRequestStatus[MAX_USR_ACK_RESULT_LENGTH]; /**< Request result text. */
 } USR_ACK_BUFFER;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Receives and integrity-checks one user request.
  *  @param[in] pstMasterArchive Master state used for error reporting.
  *  @return Allocated request buffer, or NULL when reception fails.
@@ -165,5 +169,9 @@ void post_ack(MASTER_ARCHIVE *pstMasterArchive);
  *  @return ERR_OK on success, otherwise an invalid-parameter error.
  */
 ERROR_CODE fill_ack_buffer(CHAR *pchAckStatus, UINT16 u16AckLength, MASTER_ARCHIVE *pstMasterArchive);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __COMM__ */

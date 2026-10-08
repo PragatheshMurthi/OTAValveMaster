@@ -17,6 +17,10 @@
 
 #include "comm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*============================================================================*/
 /*                            FUNCTION PROTOTYPES                             */
 /*============================================================================*/
@@ -35,5 +39,9 @@ ERROR_CODE receive_from_gsm(void **ppvBuffer);
  *  @return ERR_OK on success, otherwise a transport error.
  */
 ERROR_CODE send_gsm(void *pvBuffer);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* GSM_H */

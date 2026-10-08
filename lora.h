@@ -17,6 +17,10 @@
 
 #include "comm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*============================================================================*/
 /*                            FUNCTION PROTOTYPES                             */
 /*============================================================================*/
@@ -35,5 +39,9 @@ ERROR_CODE receive_LoRa(void **ppvBuffer);
  *  @return ERR_OK on success, otherwise a transport error.
  */
 ERROR_CODE send_LoRa(void *pvBuffer);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LORA_H */

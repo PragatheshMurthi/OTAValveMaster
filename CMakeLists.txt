@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(OTAValveMaster LANGUAGES C)
+project(OTAValveMaster LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -10,8 +10,6 @@ add_library(ota_valve_core STATIC
     comm.c
     netintr.c
     motor.c
-    lora.c
-    gsm.c
     ipc.c
 )
 
