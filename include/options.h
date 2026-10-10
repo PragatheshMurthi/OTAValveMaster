@@ -27,16 +27,16 @@
 #define MIN_TIMER_DURATION 1U
 #define MAX_TIMER_DURATION 3600U
 
-//#define ENABLE_LORA_FOR_LAN
+#define ENABLE_LORA_FOR_LAN
 
 //#define ENABLE_WIFI_FOR_WAN
-//#define ENABLE_GSM_FOR_WAN
+#define ENABLE_GSM_FOR_WAN
 
-#define OTA_HAL_SIMULATION 1
+//#define OTA_HAL_SIMULATION 1
 
 
-#define ENABLE_IPC_FOR_LAN_SIM
-#define ENABLE_IPC_FOR_WAN_SIM
+//#define ENABLE_IPC_FOR_LAN_SIM
+//#define ENABLE_IPC_FOR_WAN_SIM
 
 /* SX1278 and ESP32 WROOM hardware configuration. */
 #define LORA_SCK_PIN 18
@@ -57,6 +57,7 @@
 
 /* SIM800L UART, power, and SMS configuration. */
 #define GSM_UART_PORT 2
+#define UART_SCLK_DEFAULT 
 #define GSM_SERIAL_BAUD 115200U
 #define GSM_TX_PIN 17
 #define GSM_RX_PIN 16

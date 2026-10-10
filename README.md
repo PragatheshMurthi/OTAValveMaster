@@ -24,17 +24,14 @@ This flow remains aligned with the original design. The work here focused on cor
 
 ## Build and run
 
-### Simulation build
+This is a PlatformIO project. Build and upload from the project root:
 
-From the project root:
+```bash
+pio run
+pio run --target upload
+```
 
-cmake -S . -B build
-cmake --build build
-./build/ota_valve_master
-
-### Arduino build
-
-This project is structured for the Arduino framework. The real application entry is `setup()` and `loop()`. The simulation path is only used when `OTA_HAL_SIMULATION` is enabled to provide a host-side `main()` wrapper for testing and local execution.
+The project uses the ESP32 development board and the Arduino framework. The real application entry is `setup()` and `loop()`. The simulation path is enabled by `OTA_HAL_SIMULATION` in `include/options.h` for host-side testing.
 
 ## Notes
 

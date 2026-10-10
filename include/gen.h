@@ -43,13 +43,13 @@ typedef char CHAR;
 
 /** Error codes returned by master operations. */
 typedef enum {
-    ERR_OK = 0,                         /**< Operation completed successfully. */
+    ERR_OK_INT = 0,                       /**< Operation completed successfully. */
     ERR_NET_IF_FAIL,                    /**< Network interface failure. */
     ERR_INVALID_PARAM,                  /**< Function argument is invalid. */
     ERR_MEMORY_ALLOCATION_FAIL,         /**< Dynamic allocation failed. */
     ERR_INTEGRITY_CHECK_FAILED,         /**< Buffer integrity check failed. */
     ERR_INVALID_REQUEST,                /**< Request contents are invalid. */
-    ERR_TIMEOUT,                        /**< Operation timed out. */
+    ERR_TIMEOUT_INT,                        /**< Operation timed out. */
     ERR_STALE_ORDER,                    /**< Order sequence is stale. */
     ERR_ORDER_OOB,                      /**< Request count is out of bounds. */
     ERR_UNKNOWN                         /**< Unclassified error. */
@@ -144,13 +144,13 @@ static inline ERROR_CODE get_error(const MASTER_ARCHIVE *pstMasterArchive)
 static inline const char *convert_err2str(ERROR_CODE enErrorCode)
 {
     switch (enErrorCode) {
-        case ERR_OK: return "ERR_OK";
+        case ERR_OK_INT: return "ERR_OK";
         case ERR_NET_IF_FAIL: return "ERR_NET_IF_FAIL";
         case ERR_INVALID_PARAM: return "ERR_INVALID_PARAM";
         case ERR_MEMORY_ALLOCATION_FAIL: return "ERR_MEMORY_ALLOCATION_FAIL";
         case ERR_INTEGRITY_CHECK_FAILED: return "ERR_INTEGRITY_CHECK_FAILED";
         case ERR_INVALID_REQUEST: return "ERR_INVALID_REQUEST";
-        case ERR_TIMEOUT: return "ERR_TIMEOUT";
+        case ERR_TIMEOUT_INT: return "ERR_TIMEOUT";
         case ERR_STALE_ORDER: return "ERR_STALE_ORDER";
         case ERR_ORDER_OOB: return "ERR_ORDER_OOB";
         default: return "ERR_UNKNOWN";

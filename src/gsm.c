@@ -198,7 +198,7 @@ static ERROR_CODE sms_to_request(const char *sms_text, void **ppvBuffer)
     request->u8RequestType = request_type;
     request->u32TimerDuration = timer_duration;
     metadata->u32RequestCRC = calculate_crc(*ppvBuffer, (UINT16)request_length);
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 ERROR_CODE initialize_GSM(void)
@@ -209,8 +209,9 @@ ERROR_CODE initialize_GSM(void)
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_DEFAULT
+        .source_clk = UART_SCLK_APB
     };
+
     char response[GSM_SMS_RESPONSE_SIZE];
     int inactive_level = GSM_PWRKEY_ACTIVE_LOW ? 1 : 0;
     int active_level = GSM_PWRKEY_ACTIVE_LOW ? 0 : 1;
@@ -241,7 +242,7 @@ ERROR_CODE initialize_GSM(void)
         return ERR_NET_IF_FAIL;
     }
 
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 ERROR_CODE receive_from_gsm(void **ppvBuffer)
@@ -260,12 +261,12 @@ ERROR_CODE receive_from_gsm(void **ppvBuffer)
 
     if (!send_at_command("AT+CMGL=\"REC UNREAD\"", response, sizeof(response),
                          GSM_AT_TIMEOUT_MS)) {
-        return ERR_TIMEOUT;
+        return ERR_TIMEOUT_INT;
     }
 
     header = strstr(response, "+CMGL:");
     if (header == NULL) {
-        return ERR_TIMEOUT;
+        return ERR_TIMEOUT_INT;
     }
     if (sscanf(header, "+CMGL: %u", &message_index) != 1) {
         return ERR_INVALID_REQUEST;
@@ -320,5 +321,5 @@ ERROR_CODE send_gsm(void *pvBuffer)
         return ERR_NET_IF_FAIL;
     }
 
-    return ERR_OK;
+    return ERR_OK_INT;
 }

@@ -13,7 +13,7 @@
 /*                                  INCLUDES                                  */
 /*============================================================================*/
 #include "netintr.h"
-#include "lora.h"
+#include "loraint.h"
 #include "gsm.h"
 
 #include <time.h>
@@ -61,23 +61,23 @@ int initializeInterfaces(void)
 {
 
 #ifdef ENABLE_LORA_FOR_LAN
-    if (initialize_LoRa() != ERR_OK) {
+    if (initialize_LoRa() != ERR_OK_INT) {
         return ERR_NET_IF_FAIL;
     }
 #endif
 
 #ifdef ENABLE_GSM_FOR_WAN
-    if (initialize_GSM() != ERR_OK) {
+    if (initialize_GSM() != ERR_OK_INT) {
         return ERR_NET_IF_FAIL;
     }
 #endif
 
 #ifdef ENABLE_IPC_FOR_LAN_SIM
-    if (initialize_ipc() != ERR_OK) {
+    if (initialize_ipc() != ERR_OK_INT) {
         return ERR_NET_IF_FAIL;
     }
 #endif
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 int hal_receive_from_user(void **ppvBuffer)
@@ -94,7 +94,7 @@ int hal_receive_from_user(void **ppvBuffer)
 #ifdef ENABLE_IPC_FOR_WAN_SIM    
     receive_ipc_from_user(ppvBuffer);
 #endif
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 int hal_send_to_user(void *pvBuffer)
@@ -110,7 +110,7 @@ int hal_send_to_user(void *pvBuffer)
 #ifdef ENABLE_IPC_FOR_WAN_SIM    
     send_ipc_to_user(pvBuffer);
 #endif
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 int hal_send_to_slave(void *pvBuffer)
@@ -126,7 +126,7 @@ int hal_send_to_slave(void *pvBuffer)
 #ifdef ENABLE_IPC_FOR_LAN_SIM
     send_ipc_to_slave(pvBuffer);
 #endif
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 int hal_receive_from_slave(void **ppvBuffer)
@@ -143,7 +143,7 @@ int hal_receive_from_slave(void **ppvBuffer)
 #ifdef ENABLE_IPC_FOR_LAN_SIM
     receive_ipc_from_slave(ppvBuffer);
 #endif
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 

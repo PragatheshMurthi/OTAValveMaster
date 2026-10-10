@@ -142,7 +142,7 @@ ERROR_CODE initialize_ipc(void)
                MASTER_SLAVE_RECV_PORT);
 
     DBG_EXIT;
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 
@@ -175,7 +175,7 @@ static int udp_recv_into(int fd, void **ppvBuffer)
                   rc);
 
         DBG_EXIT;
-        return ERR_TIMEOUT;
+        return ERR_TIMEOUT_INT;
     }
 
     void *p = malloc((size_t)rc);
@@ -199,7 +199,7 @@ static int udp_recv_into(int fd, void **ppvBuffer)
                rc);
 
     DBG_EXIT;
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 
@@ -327,7 +327,7 @@ static int udp_send_to_address(const char *ip,
                    port);
 
         DBG_EXIT;
-        return ERR_OK;
+        return ERR_OK_INT;
     }
 
     print_err("%s udp_send_to_address: "

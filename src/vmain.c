@@ -53,24 +53,24 @@ void cleanup(void)
     }
 }
 
-void setup(void)
+void vmainsetup(void)
 {
-    ERROR_CODE enErrorCode = ERR_OK;
+    ERROR_CODE enErrorCode = ERR_OK_INT;
 
     gstInformationDB = malloc(sizeof(MASTER_ARCHIVE));
     if (gstInformationDB != NULL) {
         memset(gstInformationDB, 0, sizeof(MASTER_ARCHIVE));
-        gstInformationDB->enInstErrStatus = ERR_OK;
+        gstInformationDB->enInstErrStatus = ERR_OK_INT;
     }
 
     enErrorCode = initializeInterfaces();
-    if (enErrorCode != ERR_OK) {
+    if (enErrorCode != ERR_OK_INT) {
         print_err("%s:NetModInit<KO>ERR<%d>", __FUNCTION__, enErrorCode);
         return;
     }
 }
 
-void loop(void)
+void vmainloop(void)
 {
     startWorking();
     print_dbg("Work halted...");
@@ -79,9 +79,9 @@ void loop(void)
 #if OTA_HAL_SIMULATION
 int main(void)
 {
-    setup();
+    vmainsetup();
     while (true) {
-        loop();
+        vmainloop();
     }
     return 0;
 }

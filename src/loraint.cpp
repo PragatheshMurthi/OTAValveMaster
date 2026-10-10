@@ -9,8 +9,7 @@
  *              All rights reserved.
  ******************************************************************************/
 
-#include "lora.h"
-
+#include "loraint.h"
 #include <stdlib.h>
 #include <string.h>
 #include <Arduino.h>
@@ -38,7 +37,7 @@ ERROR_CODE initialize_LoRa(void)
     LoRa.receive();
 
     print_info("%s:SX1278 ready at %u Hz", __FUNCTION__, LORA_FREQUENCY_HZ);
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 ERROR_CODE send_LoRa(void *pvBuffer)
@@ -65,7 +64,7 @@ ERROR_CODE send_LoRa(void *pvBuffer)
     }
 
     LoRa.receive();
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 ERROR_CODE receive_LoRa(void **ppvBuffer)
@@ -90,7 +89,7 @@ ERROR_CODE receive_LoRa(void **ppvBuffer)
     } while ((millis() - start_time) < LORA_RX_TIMEOUT_MS);
 
     if (packet_size == 0) {
-        return ERR_TIMEOUT;
+        return ERR_TIMEOUT_INT;
     }
     if (packet_size != (int)sizeof(ACK_BUFFER)) {
         while (LoRa.available()) {
@@ -119,5 +118,5 @@ ERROR_CODE receive_LoRa(void **ppvBuffer)
     }
 
     *ppvBuffer = buffer;
-    return ERR_OK;
+    return ERR_OK_INT;
 }

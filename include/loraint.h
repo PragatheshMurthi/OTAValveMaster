@@ -12,8 +12,8 @@
 /*============================================================================*/
 /*                                  INCLUDES                                  */
 /*============================================================================*/
-#ifndef LORA_H
-#define LORA_H
+#ifndef OTA_VALVE_LORAINT_H
+#define OTA_VALVE_LORAINT_H
 
 #include "comm.h"
 
@@ -44,4 +44,4 @@ ERROR_CODE send_LoRa(void *pvBuffer);
 }
 #endif
 
-#endif /* LORA_H */
+#endif /* OTA_VALVE_LORAINT_H */

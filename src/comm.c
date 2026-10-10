@@ -56,7 +56,7 @@ static UINT32 calculate_crc_internal(const void *pvOrderBuffer, UINT16 u16OrderL
 
 PVOID receive_user_request(MASTER_ARCHIVE *pstMasterArchive)
 {
-    ERROR_CODE enErrorCode = ERR_OK;
+    ERROR_CODE enErrorCode = ERR_OK_INT;
     PVOID pvUReqBuffer = NULL;
 
     DBG_ENTRY
@@ -67,23 +67,23 @@ PVOID receive_user_request(MASTER_ARCHIVE *pstMasterArchive)
         return NULL;
     }
 
-    if (get_error(pstMasterArchive) != ERR_OK) {
+    if (get_error(pstMasterArchive) != ERR_OK_INT) {
         print_err("%s:ErrorInPreviousState<KO><%d>", __FUNCTION__, get_error(pstMasterArchive));
         DBG_EXIT
         return NULL;
     }
 
     enErrorCode = hal_receive_from_user(&pvUReqBuffer);
-    if (enErrorCode == ERR_OK && pvUReqBuffer != NULL) {
+    if (enErrorCode == ERR_OK_INT && pvUReqBuffer != NULL) {
         print_dbg("%s:RequestRecieved<OK><OB[%p]><%d>", __FUNCTION__, pvUReqBuffer, enErrorCode);
         enErrorCode = evaluate_integrity(pvUReqBuffer);
-        if (enErrorCode != ERR_OK) {
+        if (enErrorCode != ERR_OK_INT) {
             print_err("%s:OrderIntegrityCheck<KO>ERR<%d>", __FUNCTION__, enErrorCode);
             set_error(pstMasterArchive, enErrorCode);
         }
     } else {
         print_err("%s:OrderRecieve<KO>ERR<%d>", __FUNCTION__, enErrorCode);
-        set_error(pstMasterArchive, (enErrorCode == ERR_OK) ? ERR_TIMEOUT : enErrorCode);
+        set_error(pstMasterArchive, (enErrorCode == ERR_OK_INT) ? ERR_TIMEOUT_INT : enErrorCode);
     }
 
     print_info("%s:OrderRecieved<OK><OB[%p]><%d>", __FUNCTION__, pvUReqBuffer, enErrorCode);
@@ -120,7 +120,7 @@ ERROR_CODE evaluate_integrity(PVOID pvUReqBuffer)
     }
 
     DBG_EXIT
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 UINT32 calculate_crc(const void *pvOrderBuffer, UINT16 u16OrderLength)
@@ -130,7 +130,7 @@ UINT32 calculate_crc(const void *pvOrderBuffer, UINT16 u16OrderLength)
 
 void initiate_order(MASTER_ARCHIVE *pstMasterArchive)
 {
-    ERROR_CODE enErrorCode = ERR_OK;
+    ERROR_CODE enErrorCode = ERR_OK_INT;
     UINT32 u32RequestsLooper = 0U;
     SLAVE_ORDER_BUFFER stOrderBuffer = {0};
     ACK_BUFFER *pstAckBuffer = NULL;
@@ -144,7 +144,7 @@ void initiate_order(MASTER_ARCHIVE *pstMasterArchive)
         return;
     }
 
-    if (get_error(pstMasterArchive) != ERR_OK) {
+    if (get_error(pstMasterArchive) != ERR_OK_INT) {
         print_err("%s:ErrorInPreviousState<KO><%d>", __FUNCTION__, get_error(pstMasterArchive));
         DBG_EXIT
         return;
@@ -164,7 +164,7 @@ void initiate_order(MASTER_ARCHIVE *pstMasterArchive)
         pstCurrRequest->u8OrderStatus = ORDER_STATUS_ACK_PENDING;
 
         enErrorCode = hal_receive_from_slave(&pstAckBuffer, MAX_ACK_WAIT_TIME);
-        if (enErrorCode == ERR_OK && pstAckBuffer != NULL) {
+        if (enErrorCode == ERR_OK_INT && pstAckBuffer != NULL) {
             print_dbg("%s:AckRecieved<OK><AB[%p]><%d>", __FUNCTION__, pstAckBuffer, enErrorCode);
 
             if (pstAckBuffer->u32SequenceNumber == pstMasterArchive->u32CurrSequence) {
@@ -229,7 +229,7 @@ UREQ_BUFF_INTERNAL *find_instance_by_valve_id(MASTER_ARCHIVE *pstMasterArchive, 
 
 void post_ack(MASTER_ARCHIVE *pstMasterArchive)
 {
-    ERROR_CODE enErrorCode = ERR_OK;
+    ERROR_CODE enErrorCode = ERR_OK_INT;
     USR_ACK_BUFFER stAckBuffer = {0};
 
     DBG_ENTRY
@@ -251,7 +251,7 @@ void post_ack(MASTER_ARCHIVE *pstMasterArchive)
         stAckBuffer.acRequestStatus[MAX_USR_ACK_RESULT_LENGTH - 1U] = '\0';
     }
 
-    if (fill_ack_buffer(stAckBuffer.acRequestStatus, MAX_USR_ACK_RESULT_LENGTH, pstMasterArchive) != ERR_OK) {
+    if (fill_ack_buffer(stAckBuffer.acRequestStatus, MAX_USR_ACK_RESULT_LENGTH, pstMasterArchive) != ERR_OK_INT) {
         strncpy(stAckBuffer.acRequestStatus, "STATUS_POPULATION_FAILED", MAX_USR_ACK_RESULT_LENGTH - 1U);
         stAckBuffer.acRequestStatus[MAX_USR_ACK_RESULT_LENGTH - 1U] = '\0';
         print_err("%s:FailedToFillAckBuffer<KO>", __FUNCTION__);
@@ -262,12 +262,12 @@ void post_ack(MASTER_ARCHIVE *pstMasterArchive)
     
     enErrorCode = hal_send_to_user(&stAckBuffer, sizeof(stAckBuffer));
 
-    if (enErrorCode == ERR_OK) {
+    if (enErrorCode == ERR_OK_INT) {
         print_dbg("%s:AckSent<OK><AB[%p]><%d>", __FUNCTION__, &stAckBuffer, enErrorCode);
     } else {
         print_err("%s:AckSend<KO>ERR<%d>", __FUNCTION__, enErrorCode);
     }
-    set_error(pstMasterArchive, ERR_OK); // Reset error status after sending acknowledgment
+    set_error(pstMasterArchive, ERR_OK_INT); // Reset error status after sending acknowledgment
     DBG_EXIT
 }
 
@@ -283,7 +283,7 @@ ERROR_CODE fill_ack_buffer(CHAR *pchAckStatus, UINT16 u16AckLength, MASTER_ARCHI
     }
 
     print_dbg("%s:AckBufferFilled<OK><AB[%p]SN[%d]>", __FUNCTION__, pchAckStatus, pstMasterArchive->u32CurrSequence);
-    return ERR_OK;
+    return ERR_OK_INT;
 }
 
 void parse_request(MASTER_ARCHIVE *pstMasterArchive, PVOID pvUReqBuffer)
@@ -301,7 +301,7 @@ void parse_request(MASTER_ARCHIVE *pstMasterArchive, PVOID pvUReqBuffer)
         return;
     }
 
-    if (get_error(pstMasterArchive) != ERR_OK) {
+    if (get_error(pstMasterArchive) != ERR_OK_INT) {
         print_err("%s:ErrorInPreviousState<KO><%d>", __FUNCTION__, get_error(pstMasterArchive));
         DBG_EXIT
         return;
@@ -329,7 +329,7 @@ void parse_request(MASTER_ARCHIVE *pstMasterArchive, PVOID pvUReqBuffer)
         UREQ_BUFF_INTERNAL stPopulationTemp = {0};
         apstCurrUReqData = apstUReqBase + u32RequestsLooper;
 
-        if (populate_request(apstCurrUReqData, &stPopulationTemp) == ERR_OK) {
+        if (populate_request(apstCurrUReqData, &stPopulationTemp) == ERR_OK_INT) {
             memcpy(apstUReqData + u32RequestsLooper, &stPopulationTemp, sizeof(UREQ_BUFF_INTERNAL));
             print_dbg("%s:RequestParsed<OK><OB[%p]SN[%d]CN[%d]RN[%d]>", __FUNCTION__, pvUReqBuffer, ((UREQ_METADATA *)pvUReqBuffer)->u32RequestSequenceNumber, pstMasterArchive->u32CurrSequence, u32RequestsLooper);
         } else {
@@ -395,5 +395,5 @@ ERROR_CODE populate_request(UREQ_BUFFER *pstSRCUReqData, UREQ_BUFF_INTERNAL *pst
 
     print_dbg("%s:RequestValidated<OK><VID[%d]RT[%d]TD[%d]>", __FUNCTION__, pstDestUReqData->u32ValveID, pstDestUReqData->u8RequestType, pstDestUReqData->u32TimerDuration);
     DBG_EXIT
-    return ERR_OK;
+    return ERR_OK_INT;
 }
